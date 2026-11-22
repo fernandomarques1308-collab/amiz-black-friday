@@ -351,5 +351,76 @@ a{color:#E8C77A}a:hover{color:#F5EFE6}
 </footer>
 
 </div>
+
+<style>
+.ph,.story img{cursor:zoom-in}
+#lb{position:fixed;inset:0;z-index:1000;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:56px 16px 20px;background:rgba(8,8,8,.94)}
+#lb.on{display:flex}
+#lb img{max-width:min(100%,900px);max-height:calc(100dvh - 190px);object-fit:contain;border:1px solid #2B2620;touch-action:pan-y pinch-zoom}
+#lb .cap{max-width:600px;text-align:center;display:flex;flex-direction:column;gap:6px}
+#lb .cap p{margin:0;font:600 11px/1.4 Montserrat, Arial, sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#C9A24D}
+#lb .cap h3{margin:0;font:500 22px/1.15 'Cormorant Garamond', Georgia, serif;color:#F5EFE6}
+#lb .btn{padding:0 22px;margin:4px auto 0}
+#lb button{position:absolute;background:rgba(11,11,11,.8);border:1px solid #C9A24D;color:#F5EFE6;width:46px;height:46px;font:400 26px/1 Montserrat, Arial, sans-serif;cursor:pointer}
+#lb .x{top:12px;right:12px}
+#lb .nav{top:50%;transform:translateY(-50%)}#lb .pv{left:12px}#lb .nx{right:12px}
+#lb .ct{position:absolute;top:24px;left:16px;font:600 12px/1 Montserrat, Arial, sans-serif;letter-spacing:.1em;color:#A39A8F}
+</style>
+<div id="lb" role="dialog" aria-modal="true" aria-label="Foto ampliada">
+<span class="ct"></span>
+<button class="x" aria-label="Fechar">×</button>
+<button class="nav pv" aria-label="Foto anterior">‹</button>
+<img alt="">
+<button class="nav nx" aria-label="Próxima foto">›</button>
+<div class="cap"><p></p><h3></h3><a class="btn" target="_blank" rel="noopener">Quero esta peça</a></div>
+</div>
+<script>
+(function(){
+  var lb=document.getElementById('lb'),im=lb.querySelector('img'),ct=lb.querySelector('.ct'),
+      pv=lb.querySelector('.pv'),nx=lb.querySelector('.nx'),cap=lb.querySelector('.cap'),
+      lab=cap.querySelector('p'),tt=cap.querySelector('h3'),bt=cap.querySelector('.btn'),
+      fotos=[],i=0,x0=null;
+  function show(){
+    im.src=fotos[i].src;im.alt=fotos[i].alt;
+    var n=fotos.length>1;pv.style.display=nx.style.display=ct.style.display=n?'':'none';
+    ct.textContent=(i+1)+' / '+fotos.length;
+  }
+  function open(list,start,card){
+    fotos=list;i=start||0;
+    if(card){
+      lab.textContent=card.querySelector('.lab').textContent;
+      tt.textContent=card.querySelector('h3').textContent;
+      bt.href=card.querySelector('.cta').href;cap.style.display='';
+    }else{cap.style.display='none'}
+    show();lb.classList.add('on');document.body.style.overflow='hidden';
+  }
+  function close(){lb.classList.remove('on');document.body.style.overflow='';im.src=''}
+  function go(d){if(fotos.length>1){i=(i+d+fotos.length)%fotos.length;show()}}
+  document.addEventListener('click',function(e){
+    var ph=e.target.closest('.ph');
+    if(ph){
+      var card=ph.closest('.card'),alt=ph.querySelector('img:first-child').alt;
+      open([].map.call(ph.querySelectorAll('img'),function(m){return{src:m.src,alt:alt}}),0,card);return;
+    }
+    var st=e.target.closest('.story img');
+    if(st){
+      var all=[].slice.call(document.querySelectorAll('.story img'));
+      open(all.map(function(m){return{src:m.src,alt:m.alt}}),all.indexOf(st),null);
+    }
+  });
+  lb.querySelector('.x').onclick=close;
+  pv.onclick=function(){go(-1)};nx.onclick=function(){go(1)};
+  lb.addEventListener('click',function(e){if(e.target===lb)close()});
+  document.addEventListener('keydown',function(e){
+    if(!lb.classList.contains('on'))return;
+    if(e.key==='Escape')close();else if(e.key==='ArrowLeft')go(-1);else if(e.key==='ArrowRight')go(1);
+  });
+  im.addEventListener('touchstart',function(e){x0=e.touches.length===1?e.touches[0].clientX:null},{passive:true});
+  im.addEventListener('touchend',function(e){
+    if(x0===null)return;var dx=e.changedTouches[0].clientX-x0;x0=null;
+    if(Math.abs(dx)>40)go(dx<0?1:-1);
+  });
+})();
+</script>
 </body>
 </html>
